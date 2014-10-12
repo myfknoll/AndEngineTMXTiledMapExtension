@@ -21,7 +21,7 @@ import android.content.res.AssetManager;
 /**
  * (c) 2010 Nicolas Gramlich
  * (c) 2011 Zynga Inc.
- * 
+ *
  * @author Nicolas Gramlich
  * @since 19:11:29 - 20.07.2010
  */
@@ -61,6 +61,8 @@ public class TMXParser extends DefaultHandler implements TMXConstants {
 	private boolean mInData;
 	private boolean mInObjectGroup;
 	private boolean mInObject;
+
+    private final boolean supportMultiTileset = true;
 
 	// ===========================================================
 	// Constructors
@@ -151,7 +153,14 @@ public class TMXParser extends DefaultHandler implements TMXConstants {
 			}
 		} else if(pLocalName.equals(TMXConstants.TAG_LAYER)){
 			this.mInLayer = true;
-			this.mTMXTiledMap.addTMXLayer(new TMXLayer(this.mTMXTiledMap, pAttributes, this.mVertexBufferObjectManager));
+			TMXLayer pTMXLayer = null;
+			if(supportMultiTileset){
+				pTMXLayer = new MultiTMXLayer(this.mTMXTiledMap, pAttributes, this.mVertexBufferObjectManager);
+			}else{
+				pTMXLayer= new TMXLayer(this.mTMXTiledMap, pAttributes, this.mVertexBufferObjectManager);
+			}
+			this.mTMXTiledMap.addTMXLayer(pTMXLayer);
+
 		} else if(pLocalName.equals(TMXConstants.TAG_DATA)){
 			this.mInData = true;
 			this.mDataEncoding = pAttributes.getValue("", TMXConstants.TAG_DATA_ATTRIBUTE_ENCODING);
@@ -168,12 +177,12 @@ public class TMXParser extends DefaultHandler implements TMXConstants {
 		}
 	}
 
-	@Override
-	public void characters(final char[] pCharacters, final int pStart, final int pLength) throws SAXException {
-		this.mStringBuilder.append(pCharacters, pStart, pLength);
-	}
+    @Override
+    public void characters(final char[] pCharacters, final int pStart, final int pLength) throws SAXException {
+        this.mStringBuilder.append(pCharacters, pStart, pLength);
+    }
 
-	@Override
+    @Override
 	public void endElement(final String pUri, final String pLocalName, final String pQualifiedName) throws SAXException {
 		if(pLocalName.equals(TMXConstants.TAG_MAP)){
 			this.mInMap = false;
